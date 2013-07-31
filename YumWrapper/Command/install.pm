@@ -31,6 +31,29 @@ sub execute {
 	# first search for the program name
 	my $yumout = `yum search $opt->{name}`;
 	
-	say $yumout;
+	# parse output and look for the name
+	my @lines = split('\n', $yumout);
+	
+	my $headerfound;
+	my @programs;
+	for my $line (@lines) {
+		if($line =~ /\A=+/) {
+			# header found. the next lines are names of programs
+			$headerfound = 1;
+		}
+		elsif($headerfound) {
+			# header was found in one of the last lines. Look for program names
+			if($headerfound && $line =~ /\A\Z/)  {
+				# empty line is end of the program list
+				say "found end";
+				last;
+			}
+			elsif($line =~ /\A(.*?)\s:/) {
+				say "found '$1' in $line";
+				push(@programs, $1);
+			}
+			
+		}
+	} # for my
 }
 1;
